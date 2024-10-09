@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 from environs import Env
+from datetime import timedelta
+from services.generate_secrets import jwt_secret_key
 
 env = Env()
 
@@ -89,6 +91,23 @@ REST_FRAMEWORK = {
         'django_filters.rest_framework.DjangoFilterBackend',
         'rest_framework.filters.OrderingFilter',
     ],
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', jwt_secret_key)
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(seconds=env.int('JWT_EXPIRATION_TIME')),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': env.str('JWT_ALGORITHM'),
+    'SIGNING_KEY': JWT_SECRET_KEY,
 }
 
 
@@ -98,11 +117,11 @@ REST_FRAMEWORK = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'HOST': env('HOST_DB'),
-        'USER': env('USER_DB'),
-        'PASSWORD': env('PASSWD_DB'),
-        'NAME': env('NAME_DB'),
-        'PORT': env('PORT_DB')
+        'HOST': env.str('HOST_DB'),
+        'USER': env.str('USER_DB'),
+        'PASSWORD': env.str('PASSWD_DB'),
+        'NAME': env.str('NAME_DB'),
+        'PORT': env.int('PORT_DB')
     }
 }
 
