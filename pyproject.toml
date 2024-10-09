@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "fms"
+version = "0.1.0"
+description = "symple financial management system"
+authors = ["Vitaliy Kozhushko <itvkip@yandex.ru>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+asgiref = "^3.8.1"
+django = "^5.1.2"
+sqlparse = "^0.5.1"
+typing-extensions = "^4.12.2"
+tzdata = "^2024.2"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
