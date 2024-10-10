@@ -1,5 +1,5 @@
 """
-Модуль для настройки интерфейса администратора Django для управления моделью User.
+Модуль настройки интерфейса администратора Django для управления моделью User.
 """
 from datetime import datetime
 from django.contrib import admin
@@ -8,7 +8,7 @@ from .models import User
 
 class UserAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
     """
-    Класс для настройки админ-панели Django для модели User.
+    Класс настройки админ-панели Django для модели User.
     """
     list_display = (
         'id', 'first_name', 'last_name', 'email', 'formatted_date_joined')
