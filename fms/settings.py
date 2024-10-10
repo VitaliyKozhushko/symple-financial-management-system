@@ -11,9 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
-from environs import Env
 from datetime import timedelta
-from services.generate_secrets import jwt_secret_key
+from environs import Env
 
 env = Env()
 
@@ -21,6 +20,7 @@ ENVIRONMENT = env.str('ENVIRONMENT', 'local')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Опр. путь к .env файлу в зависимости от окружения
 if ENVIRONMENT == 'docker':
     env.read_env('.env.docker', recurse=False)
 else:
@@ -99,7 +99,7 @@ REST_FRAMEWORK = {
     ],
 }
 
-JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', jwt_secret_key)
+JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY', env.str('JWT_SECRET_KEY'))
 
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(seconds=env.int('JWT_EXPIRATION_TIME')),
@@ -109,7 +109,6 @@ SIMPLE_JWT = {
     'ALGORITHM': env.str('JWT_ALGORITHM'),
     'SIGNING_KEY': JWT_SECRET_KEY,
 }
-
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
@@ -124,7 +123,6 @@ DATABASES = {
         'PORT': env.int('PORT_DB')
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -144,7 +142,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/
 
@@ -155,7 +152,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
