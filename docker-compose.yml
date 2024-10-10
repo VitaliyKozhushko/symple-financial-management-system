@@ -1,0 +1,55 @@
+services:
+  db:
+    image: postgis/postgis:14-3.2-alpine
+    container_name: postgres
+    ports:
+      - "${PORT_DB}:5432"
+    environment:
+      - ENVIRONMENT=docker
+      - POSTGRES_DB=${NAME_DB}
+      - POSTGRES_USER=${USER_DB}
+      - POSTGRES_PASSWORD=${PASSWD_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+    env_file:
+      - .env.docker
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${USER_DB} -d ${NAME_DB}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: django
+    command: sh -c "python manage.py collectstatic --no-input &&
+                    python manage.py makemigrations &&
+                    python manage.py migrate &&
+                    python manage.py shell < create_superuser.py &&
+                    gunicorn --bind 0.0.0.0:8000 fms.wsgi:application"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/project
+      - static_data:/project/static
+    environment:
+      - ENVIRONMENT=docker
+    env_file:
+      - .env.docker
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+  static_data:
+
+networks:
+  app-network:
+    driver: bridge
