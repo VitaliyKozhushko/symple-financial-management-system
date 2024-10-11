@@ -45,3 +45,5 @@ JWT: исп. 32-байтовый ключ в шестнадцетиричном 
 Список пользователей и транзакций можно просматривать, редактировать и удалять также через админку
 Исп. стандартная валидация email
 В swagger в модалке для авторизации ввести токен формата "Bearer [access_token]"
+В рамках данного задания предполагается, что можно редактировать как транзакции, созданные самим собой, так и транзакции других пользователей
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzI4NzMyMDAyLCJpYXQiOjE3Mjg3Mjg0MDIsImp0aSI6ImExMGM4OTJkNDFhNDRiODE4YmNkOTMyNjdjZGYwMjI3IiwidXNlcl9pZCI6Mn0.bE4JYaw8weESLF3hDYOCc2JdQiWaGtKqtjIV4cY30IQ
