@@ -116,6 +116,21 @@ SIMPLE_JWT = {
     'SIGNING_KEY': JWT_SECRET_KEY,
 }
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': ('JWT Authorization header using the Bearer scheme. '
+                            'Example: "Bearer {token}"')
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'DEFAULT_INFO': 'path.to.openapi_info',
+    'PERSIST_AUTH': True
+}
+
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 

@@ -1,34 +1,85 @@
 """
 Модуль для представлений модели User
 """
+from typing import (Any,
+                    cast,
+                    Callable,
+                    List,
+                    Type,
+                    TypeVar)
+from functools import wraps
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status
+from rest_framework import (generics,
+                            status)
 from rest_framework.request import Request
 from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.permissions import AllowAny
-from .serializers import UserSerializer
+from rest_framework.permissions import (AllowAny,
+                                        BasePermission,
+                                        IsAuthenticated)
+from rest_framework.serializers import Serializer
+from .serializers import (UserSerializer,
+                          UserDetailSerializer)
+from .models import User
+
+F = TypeVar('F', bound=Callable[..., Response])
 
 
-class RegisterUserView(APIView):  # type: ignore
+def add_bearer_security(view_method: F) -> F:
+    """Декоратор добавления Bearer токена в аннотацию swagger_auto_schema"""
+
+    @wraps(view_method)
+    def wrapper(*args: Any, **kwargs: Any) -> Response:
+        return view_method(*args, **kwargs)
+
+    return cast(F, swagger_auto_schema(security=[{'Bearer': []}])(wrapper))
+
+
+class UserListView(generics.ListCreateAPIView):  # type: ignore
     """
-    Класс представления для регистрации пользователя
+    Получение списка пользователей и создание пользователя
     """
-    permission_classes = [AllowAny]
+    queryset = User.objects.all()
+    permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(request_body=UserSerializer)  # type: ignore
-    def post(self, request: Request) -> Response:
-        """
-        POST-запрос регистрации нового пользователя
-        Аргументы:
-            request (Request): запрос, содержащий данные для регистрации пользователя.
+    def get_permissions(self) -> List[BasePermission]:
+        if self.request.method == 'POST':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
-        Возвращает:
-            Response: Ответ с сообщением об успешной регистрации или с ошибками валидации.
-        """
-        serializer = UserSerializer(data=request.data)
+    def get_serializer_class(self) -> Type[Serializer]:
+        if self.request.method == 'POST':
+            return UserSerializer
+        return UserDetailSerializer
+
+    @add_bearer_security
+    def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        return super().get(request, *args, **kwargs)
+
+    @add_bearer_security
+    def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        return super().post(request, *args, **kwargs)
+
+
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):  # type: ignore
+    """
+    Получение данных по опр. пользователю, редактирование пользователя и его удаления
+    """
+    queryset = User.objects.all()
+    serializer_class = UserDetailSerializer
+    permission_classes = [IsAuthenticated]
+    http_method_names = ['get', 'put', 'delete']
+
+    @add_bearer_security
+    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        user = self.get_object()
+        serializer = self.get_serializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "User registered successfully"},
-                            status=status.HTTP_201_CREATED)
+            return Response({"message": "Пользователь успешно обновлен"}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @add_bearer_security
+    def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
+        user = self.get_object()
+        user.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

@@ -15,12 +15,14 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path, re_path
+from django.urls import (path,
+                         re_path)
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework.permissions import AllowAny
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from users.views import RegisterUserView
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
+from users.views import UserListView, UserDetailView
 
 SchemaView = get_schema_view(
     openapi.Info(
@@ -33,12 +35,14 @@ SchemaView = get_schema_view(
     ),
     public=True,
     permission_classes=[AllowAny],
+    authentication_classes=[],
 )
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('users/', RegisterUserView.as_view(), name='registration'),
     path('login/', TokenObtainPairView.as_view(), name='get_token'),
+    path('users/', UserListView.as_view(), name='user-list-create'),
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail-update-delete'),
     path('token/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
     path('redoc/', SchemaView.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('swagger/', SchemaView.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
