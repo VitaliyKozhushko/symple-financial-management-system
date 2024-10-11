@@ -1,8 +1,8 @@
 """
 Модуль настройки интерфейса администратора Django для управления моделью User.
 """
-from datetime import datetime
 from django.contrib import admin
+from services.date_operations import formatted_date
 from .models import User
 
 
@@ -14,15 +14,8 @@ class UserAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
         'id', 'first_name', 'last_name', 'email', 'formatted_date_joined')
 
     def formatted_date_joined(self, obj: User) -> str:
-        """
-        Возвращает дату регистрации пользователя в формате 'дд.мм.гггг'.
-        Args:
-            obj (User): Экземпляр модели User.
-        Returns:
-            str: Дата регистрации пользователя в формате 'дд.мм.гггг'.
-        """
-        date_joined: datetime = obj.date_joined
-        return date_joined.strftime('%d.%m.%Y')
+        """Использует вспомогательную функцию для форматирования даты регистрации."""
+        return formatted_date(obj, 'date_joined')
 
     formatted_date_joined.short_description = 'Дата регистрации'  # type: ignore
     formatted_date_joined.admin_order_field = 'date_joined'  # type: ignore

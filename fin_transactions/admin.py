@@ -1,8 +1,8 @@
 """
 Модуль настройки интерфейса администратора для управления моделью Transaction.
 """
-from datetime import datetime
 from django.contrib import admin
+from services.date_operations import formatted_date
 from .models import Transaction
 
 
@@ -14,15 +14,8 @@ class TransactionAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
                     'transaction_type', 'category', 'formatted_date_transaction')
 
     def formatted_date_transaction(self, obj: Transaction) -> str:
-        """
-        Возвращает дату транзакции в формате 'дд.мм.гггг'.
-        Args:
-            obj (Transaction): Экземпляр модели Transaction.
-        Returns:
-            str: Дата транзакции в формате 'дд.мм.гггг'.
-        """
-        date_transaction: datetime = obj.date_transaction
-        return date_transaction.strftime('%d.%m.%Y')
+        """Использует вспомогательную функцию для форматирования даты транзакции."""
+        return formatted_date(obj, 'date_transaction')
 
     formatted_date_transaction.short_description = 'Дата транзакции'  # type: ignore
     formatted_date_transaction.admin_order_field = 'date'  # type: ignore
