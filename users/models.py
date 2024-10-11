@@ -2,9 +2,10 @@
 Модуль моделей приложения users для хранения информации о пользователях в БД
 """
 from django.db import models
+from django.contrib.auth.models import AbstractUser
 
 
-class User(models.Model):
+class User(AbstractUser):
     """
     Модель пользователя
 
@@ -20,6 +21,9 @@ class User(models.Model):
     email = models.EmailField(unique=True, verbose_name='Email')
     date_joined = models.DateTimeField(auto_now_add=True, verbose_name='Дата регистрации')
     date_modified = models.DateTimeField(auto_now=True)
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['first_name', 'last_name']
 
     # pylint: disable=too-few-public-methods
     class Meta:

@@ -43,6 +43,8 @@ class Transaction(models.Model):
     date_transaction = models.DateTimeField(auto_now_add=True, verbose_name='Дата транзакции')
     date_modified = models.DateTimeField(auto_now=True)
 
+    objects = models.Manager()
+
     # pylint: disable=too-few-public-methods
     class Meta:
         """

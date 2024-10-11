@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'drf_yasg',
     'django_filters',
     'users',
     'fin_transactions'
@@ -115,6 +116,21 @@ SIMPLE_JWT = {
     'SIGNING_KEY': JWT_SECRET_KEY,
 }
 
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': ('JWT Authorization header using the Bearer scheme. '
+                            'Example: "Bearer {token}"')
+        }
+    },
+    'USE_SESSION_AUTH': False,
+    'DEFAULT_INFO': 'path.to.openapi_info',
+    'PERSIST_AUTH': True
+}
+
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -146,6 +162,8 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+AUTH_USER_MODEL = 'users.User'
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.1/topics/i18n/

@@ -15,8 +15,43 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import (path,
+                         re_path)
+from drf_yasg import openapi
+from drf_yasg.views import get_schema_view
+from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.views import (TokenObtainPairView,
+                                            TokenRefreshView)
+from users.views import (UserListView,
+                         UserDetailView)
+from fin_transactions.views import (TransactionListCreateView,
+                                    TransactionDetailView)
+
+SchemaView = get_schema_view(
+    openapi.Info(
+        title="Symple financial management system API",
+        default_version='v1',
+        description="API documentation",
+        terms_of_service="https://www.google.com/policies/terms/",
+        contact=openapi.Contact(email="itvkip@yandex.ru"),
+        license=openapi.License(name="BSD License"),
+    ),
+    public=True,
+    permission_classes=[AllowAny],
+    authentication_classes=[],
+)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('login/', TokenObtainPairView.as_view(), name='get_token'),
+    path('users/', UserListView.as_view(), name='user-list-create'),
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail-update-delete'),
+    path('transactions/', TransactionListCreateView.as_view(), name='transaction-list-create'),
+    path('transactions/<int:pk>/', TransactionDetailView.as_view(),
+         name='transaction-detail-update-delete'),
+    path('token/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
+    path('redoc/', SchemaView.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+    path('swagger/', SchemaView.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    re_path(r'^swagger(?P<format>\.json|\.yaml)$',
+            SchemaView.without_ui(cache_timeout=0), name='schema-json'),
 ]
