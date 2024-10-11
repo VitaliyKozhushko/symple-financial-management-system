@@ -2,13 +2,8 @@
 Модуль для представлений модели User
 """
 from typing import (Any,
-                    cast,
-                    Callable,
                     List,
-                    Type,
-                    TypeVar)
-from functools import wraps
-from drf_yasg.utils import swagger_auto_schema
+                    Type)
 from rest_framework import (generics,
                             status)
 from rest_framework.request import Request
@@ -17,21 +12,10 @@ from rest_framework.permissions import (AllowAny,
                                         BasePermission,
                                         IsAuthenticated)
 from rest_framework.serializers import Serializer
+from services.generators import add_bearer_security
 from .serializers import (UserSerializer,
                           UserDetailSerializer)
 from .models import User
-
-F = TypeVar('F', bound=Callable[..., Response])
-
-
-def add_bearer_security(view_method: F) -> F:
-    """Декоратор добавления Bearer токена в аннотацию swagger_auto_schema"""
-
-    @wraps(view_method)
-    def wrapper(*args: Any, **kwargs: Any) -> Response:
-        return view_method(*args, **kwargs)
-
-    return cast(F, swagger_auto_schema(security=[{'Bearer': []}])(wrapper))
 
 
 class UserListView(generics.ListCreateAPIView):  # type: ignore

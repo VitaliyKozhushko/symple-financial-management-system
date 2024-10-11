@@ -1,32 +1,16 @@
 """
 Модуль для представлений модели Transaction
 """
-from typing import (Any,
-                    cast,
-                    Callable,
-                    TypeVar)
-from functools import wraps
+from typing import Any
 from decimal import (Decimal,
                      InvalidOperation)
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 from rest_framework.response import Response
+from services.generators import add_bearer_security
 from .models import Transaction
 from .serializers import TransactionsSerializer
-
-F = TypeVar('F', bound=Callable[..., Response])
-
-
-def add_bearer_security(view_method: F) -> F:
-    """Декоратор добавления Bearer токена в аннотацию swagger_auto_schema"""
-
-    @wraps(view_method)
-    def wrapper(*args: Any, **kwargs: Any) -> Response:
-        return view_method(*args, **kwargs)
-
-    return cast(F, swagger_auto_schema(security=[{'Bearer': []}])(wrapper))
 
 
 class TransactionListCreateView(generics.ListCreateAPIView):  # type: ignore
