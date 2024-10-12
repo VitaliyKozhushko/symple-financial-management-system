@@ -13,9 +13,6 @@ import os
 from pathlib import Path
 from datetime import timedelta
 from environs import Env
-import django_stubs_ext
-
-django_stubs_ext.monkeypatch()
 
 env = Env()
 
@@ -130,6 +127,13 @@ SWAGGER_SETTINGS = {
     'DEFAULT_INFO': 'path.to.openapi_info',
     'PERSIST_AUTH': True
 }
+
+CELERY_BROKER_URL = f'redis://{env("REDIS_SERVER")}:6379/0'
+CELERY_RESULT_BACKEND = f'redis://{env("REDIS_SERVER")}:6379/0'
+
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
 
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
