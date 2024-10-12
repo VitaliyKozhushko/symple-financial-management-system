@@ -12,7 +12,7 @@ from rest_framework.permissions import (AllowAny,
                                         BasePermission,
                                         IsAuthenticated)
 from rest_framework.serializers import Serializer
-from services.generators import add_bearer_security
+from services.decorators import add_bearer_security
 from .serializers import (UserSerializer,
                           UserDetailSerializer)
 from .models import User
