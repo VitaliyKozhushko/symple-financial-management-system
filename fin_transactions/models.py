@@ -3,7 +3,9 @@
 """
 from django.db import models
 from django.core.exceptions import ValidationError
-from users.models import User
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class Transaction(models.Model):
@@ -74,3 +76,22 @@ class Transaction(models.Model):
         """
         transaction_display = self.get_transaction_type_display_custom()
         return f"{transaction_display} - {self.amount} ({self.category})"
+
+
+class ReportsResult(models.Model):
+    STATUS_CHOICES = [
+        ('in_progress', 'In Progress'),
+        ('completed', 'Completed'),
+        ('error', 'Error'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE,
+                             related_name='reports_result', verbose_name='Пользователь')
+    task_id = models.CharField(max_length=255, verbose_name='Celery id')
+    report = models.CharField(max_length=255, blank=True, null=True, verbose_name='Путь к отчету')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='in_progress', verbose_name='Статус отчета')
+    error_message = models.TextField(blank=True, null=True, verbose_name='Ошибка')
+    created_at = models.DateField(auto_now_add=True, verbose_name='Дата создания')
+
+    def __str__(self):
+        return f"Task {self.task_id} for user {self.user}"
