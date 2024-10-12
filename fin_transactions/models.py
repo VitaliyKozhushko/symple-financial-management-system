@@ -40,7 +40,7 @@ class Transaction(models.Model):
                                         choices=TRANSACTION_TYPE_CHOICES,
                                         verbose_name='Тип транзакции')
     category = models.CharField(max_length=100, verbose_name='Категория')
-    date_transaction = models.DateTimeField(auto_now_add=True, verbose_name='Дата транзакции')
+    date_transaction = models.DateTimeField(verbose_name='Дата транзакции')
     date_modified = models.DateTimeField(auto_now=True)
 
     objects = models.Manager()
