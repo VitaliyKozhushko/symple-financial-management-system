@@ -25,7 +25,8 @@ from rest_framework_simplejwt.views import (TokenObtainPairView,
 from users.views import (UserListView,
                          UserDetailView)
 from fin_transactions.views import (TransactionListCreateView,
-                                    TransactionDetailView)
+                                    TransactionDetailView,
+                                    GenerateReportView)
 
 SchemaView = get_schema_view(
     openapi.Info(
@@ -49,6 +50,7 @@ urlpatterns = [
     path('transactions/', TransactionListCreateView.as_view(), name='transaction-list-create'),
     path('transactions/<int:pk>/', TransactionDetailView.as_view(),
          name='transaction-detail-update-delete'),
+    path('report/', GenerateReportView.as_view(), name='generate_report'),
     path('token/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
     path('redoc/', SchemaView.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     path('swagger/', SchemaView.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
