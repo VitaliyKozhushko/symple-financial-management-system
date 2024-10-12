@@ -187,6 +187,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, env.str('STATIC_URL'))
 
 STATIC_URL = env.str('STATIC_URL')
 
+MEDIA_URL = env.str('MEDIA_URL')
+
+MEDIA_ROOT = os.path.join(BASE_DIR, env.str('MEDIA_URL'))
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
