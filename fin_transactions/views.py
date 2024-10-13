@@ -11,10 +11,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from services.decorators import add_bearer_security, swagger_auto_schema_with_types
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
+from services.decorators import (add_bearer_security,
+                                 swagger_auto_schema_with_types)
 from .celery_tasks import generate_transaction_report
-from .models import Transaction, ReportsResult
+from .models import (Transaction,
+                     ReportsResult)
 from .serializers import TransactionsSerializer
 
 
@@ -84,6 +87,7 @@ class GenerateReportView(APIView):  # type: ignore
     """
     Формирование отчета по пользователю за все время либо за опр. период
     """
+
     @swagger_auto_schema_with_types
     def post(self, request: Request, *_args: Any, **_kwargs: Any) -> Response:
         """
@@ -113,36 +117,48 @@ class GenerateReportView(APIView):  # type: ignore
 
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
-class ReportDownloadView(APIView):
+
+class ReportDownloadView(APIView):  # type: ignore
+    """
+    Получение готового отчета по транзакциям
+    """
+
     @staticmethod
-    def get(request, task_id: str, *args, **kwargs):
+    def get(request: Request, task_id: str, *_args: Any, **_kwargs: Any) -> Response:
+        """Получение статуса формирования отчета и готового результата (при сохранении CSV в БД)"""
         try:
             report_result = ReportsResult.objects.get(task_id=task_id)
             task_result = AsyncResult(task_id)
             task_status = task_result.state
 
-            if task_status == 'PENDING':
-                return Response({'status': 'Формирование отчета в очереди на выполнение'}, status=status.HTTP_200_OK)
+            status_messages = {
+                'PENDING': 'Формирование отчета в очереди на выполнение',
+                'STARTED': 'Формирование отчета выполняется',
+                'FAILURE': 'Ошибка при формирвании отчета'
+            }
 
-            elif task_status == 'STARTED':
-                return Response({'status': 'Формирование отчета выполняется'}, status=status.HTTP_200_OK)
+            if task_status in status_messages:
+                return Response(
+                    {'status': status_messages[task_status]},
+                    status=(status.HTTP_200_OK if task_status != 'FAILURE'
+                            else status.HTTP_500_INTERNAL_SERVER_ERROR)
+                )
 
-            elif task_status == 'SUCCESS' and report_result.status == 'completed':
+            if task_status == 'SUCCESS' and report_result.status == 'completed':
                 if report_result.send_email:
                     return Response({
                         'status': f'Отчет успешно отправлен на email {report_result.user.email}'
                     }, status=status.HTTP_200_OK)
-                else:
-                    return Response({
-                        'status': 'Формирование отчета выполнено',
-                        'file_url': request.build_absolute_uri(f'{settings.MEDIA_URL}reports/{report_result.report}')
-                    }, status=status.HTTP_200_OK)
 
-            elif task_status == 'FAILURE':
-                return Response({'status': 'Ошибка при формирвании отчета', 'error': task_result.error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({
+                    'status': 'Формирование отчета выполнено',
+                    'file_url': request.build_absolute_uri(
+                        f'{settings.MEDIA_URL}reports/{report_result.report}'
+                    )
+                }, status=status.HTTP_200_OK)
 
-            else:
-                return Response({'status': 'Формирование отчета в процессе'}, status=status.HTTP_200_OK)
+            return Response({'status': 'Формирование отчета в процессе'}, status=status.HTTP_200_OK)
 
-        except ReportsResult.DoesNotExist:
-            return Response({'status': 'Задача по формированию отчета не найдена'}, status=status.HTTP_404_NOT_FOUND)
+        except ObjectDoesNotExist:
+            return Response({'status': 'Задача по формированию отчета не найдена'},
+                            status=status.HTTP_404_NOT_FOUND)

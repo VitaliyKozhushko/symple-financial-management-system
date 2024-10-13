@@ -79,6 +79,24 @@ class Transaction(models.Model):
 
 
 class ReportsResult(models.Model):
+    """
+        Модель Celery задач
+
+        Атрибуты:
+            STATUS_CHOICES (list[tuple[str, str]]): список статусов задач
+                -('in_progress', 'In Progress') - в прогрессе
+                - ('completed', 'Completed') - выполнено
+                - ('error', 'Error') - ошибка
+
+        Поля:
+            user (ForeignKey): ссылка на пользователя, к которому относится задача
+            task_id (CharField): id Celery задачи
+            report (CharField): путь к файлу с отчетом
+            send_email (BooleanField): отправка отчета на email либо сохранение в БД
+            status (CharField): статус выполнения Celery задачи
+            error_message (TextField): Сообщение об ошибке при наличии
+            created_at (DateField): дата создания. Устанавливается автоматически
+        """
     STATUS_CHOICES = [
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
@@ -90,9 +108,25 @@ class ReportsResult(models.Model):
     task_id = models.CharField(max_length=255, verbose_name='Celery id')
     report = models.CharField(max_length=255, blank=True, null=True, verbose_name='Путь к отчету')
     send_email = models.BooleanField(default=False, verbose_name='Отправить на email')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='in_progress', verbose_name='Статус отчета')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES,
+                              default='in_progress', verbose_name='Статус отчета')
     error_message = models.TextField(blank=True, null=True, verbose_name='Ошибка')
     created_at = models.DateField(auto_now_add=True, verbose_name='Дата создания')
 
-    def __str__(self):
+    objects = models.Manager()
+
+    # pylint: disable=too-few-public-methods
+    class Meta:
+        """
+        Уст. название таблицы в БД, человекочитаемое название модели
+        """
+        db_table = 'reports_result'
+        verbose_name = 'Отчет по пользователю'
+        verbose_name_plural = 'Отчеты по пользователю'
+
+    def __str__(self) -> str:
+        """
+        Возвращает строковое представление Celery задачи: id задачи и пользователь, к которому
+        относится данная задача.
+        """
         return f"Task {self.task_id} for user {self.user}"
