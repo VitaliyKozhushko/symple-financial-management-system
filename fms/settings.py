@@ -187,6 +187,21 @@ STATIC_ROOT = os.path.join(BASE_DIR, env.str('STATIC_URL'))
 
 STATIC_URL = env.str('STATIC_URL')
 
+MEDIA_URL = env.str('MEDIA_URL')
+
+MEDIA_ROOT = os.path.join(BASE_DIR, env.str('MEDIA_URL'))
+
+
+# Email settings
+DEFAULT_FROM_EMAIL = env.str('EMAIL_SENDER')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = env.str('EMAIL_HOST')
+EMAIL_PORT = env.int('EMAIL_PORT')
+EMAIL_USE_TLS = env.bool('EMAIL_TLS')
+EMAIL_USE_SSL = env.bool('EMAIL_SSL')
+EMAIL_HOST_USER = env.str('EMAIL_SENDER')
+EMAIL_HOST_PASSWORD = env.str('EMAIL_PASSWD')
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 

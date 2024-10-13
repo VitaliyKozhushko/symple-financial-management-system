@@ -6,3 +6,6 @@
 *_symlink
 
 celerybeat-schedule
+
+static/
+media/

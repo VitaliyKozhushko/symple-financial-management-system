@@ -4,6 +4,7 @@
 from typing import Any
 from decimal import (Decimal,
                      InvalidOperation)
+from celery.result import AsyncResult
 from rest_framework import (generics,
                             status)
 from rest_framework.exceptions import ValidationError
@@ -11,8 +12,9 @@ from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from services.decorators import add_bearer_security, swagger_auto_schema_with_types
+from django.conf import settings
 from .celery_tasks import generate_transaction_report
-from .models import Transaction
+from .models import Transaction, ReportsResult
 from .serializers import TransactionsSerializer
 
 
@@ -91,6 +93,8 @@ class GenerateReportView(APIView):  # type: ignore
         user_id = request.data.get('user_id')
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
+        send_email = bool(request.data.get('send_email', False))
+
         transactions_exists = Transaction.objects.filter(
             user_id=user_id,
             date_transaction__range=[start_date, end_date]
@@ -103,6 +107,42 @@ class GenerateReportView(APIView):  # type: ignore
             )
 
         task = generate_transaction_report.delay(user_id=user_id,
-                                                 start_date=start_date, end_date=end_date)
+                                                 start_date=start_date,
+                                                 end_date=end_date,
+                                                 send_email=send_email)
 
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
+
+class ReportDownloadView(APIView):
+    @staticmethod
+    def get(request, task_id: str, *args, **kwargs):
+        try:
+            report_result = ReportsResult.objects.get(task_id=task_id)
+            task_result = AsyncResult(task_id)
+            task_status = task_result.state
+
+            if task_status == 'PENDING':
+                return Response({'status': 'Формирование отчета в очереди на выполнение'}, status=status.HTTP_200_OK)
+
+            elif task_status == 'STARTED':
+                return Response({'status': 'Формирование отчета выполняется'}, status=status.HTTP_200_OK)
+
+            elif task_status == 'SUCCESS' and report_result.status == 'completed':
+                if report_result.send_email:
+                    return Response({
+                        'status': f'Отчет успешно отправлен на email {report_result.user.email}'
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({
+                        'status': 'Формирование отчета выполнено',
+                        'file_url': request.build_absolute_uri(f'{settings.MEDIA_URL}reports/{report_result.report}')
+                    }, status=status.HTTP_200_OK)
+
+            elif task_status == 'FAILURE':
+                return Response({'status': 'Ошибка при формирвании отчета', 'error': task_result.error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+            else:
+                return Response({'status': 'Формирование отчета в процессе'}, status=status.HTTP_200_OK)
+
+        except ReportsResult.DoesNotExist:
+            return Response({'status': 'Задача по формированию отчета не найдена'}, status=status.HTTP_404_NOT_FOUND)
