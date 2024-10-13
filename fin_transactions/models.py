@@ -89,6 +89,7 @@ class ReportsResult(models.Model):
                              related_name='reports_result', verbose_name='Пользователь')
     task_id = models.CharField(max_length=255, verbose_name='Celery id')
     report = models.CharField(max_length=255, blank=True, null=True, verbose_name='Путь к отчету')
+    send_email = models.BooleanField(default=False, verbose_name='Отправить на email')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='in_progress', verbose_name='Статус отчета')
     error_message = models.TextField(blank=True, null=True, verbose_name='Ошибка')
     created_at = models.DateField(auto_now_add=True, verbose_name='Дата создания')

@@ -43,7 +43,10 @@ def swagger_auto_schema_with_types(func: F) -> F:
                                                'end_date': openapi.Schema(
                                                    type=openapi.TYPE_STRING,
                                                    format='date',
-                                                   description='Дата окончания (YYYY-MM-DD)')
+                                                   description='Дата окончания (YYYY-MM-DD)'),
+                                               'send_email': openapi.Schema(
+                                                   type=openapi.TYPE_BOOLEAN,
+                                                   description='Отправить отчет на email'),
                                            },
                                            required=['user_id']
                                        ),

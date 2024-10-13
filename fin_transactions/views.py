@@ -93,6 +93,8 @@ class GenerateReportView(APIView):  # type: ignore
         user_id = request.data.get('user_id')
         start_date = request.data.get('start_date')
         end_date = request.data.get('end_date')
+        send_email = bool(request.data.get('send_email', False))
+
         transactions_exists = Transaction.objects.filter(
             user_id=user_id,
             date_transaction__range=[start_date, end_date]
@@ -105,7 +107,9 @@ class GenerateReportView(APIView):  # type: ignore
             )
 
         task = generate_transaction_report.delay(user_id=user_id,
-                                                 start_date=start_date, end_date=end_date)
+                                                 start_date=start_date,
+                                                 end_date=end_date,
+                                                 send_email=send_email)
 
         return Response({"task_id": task.id}, status=status.HTTP_202_ACCEPTED)
 
@@ -116,8 +120,6 @@ class ReportDownloadView(APIView):
             report_result = ReportsResult.objects.get(task_id=task_id)
             task_result = AsyncResult(task_id)
             task_status = task_result.state
-            print('task_status', task_status)
-            print('report_result', report_result.status)
 
             if task_status == 'PENDING':
                 return Response({'status': 'Формирование отчета в очереди на выполнение'}, status=status.HTTP_200_OK)
@@ -126,10 +128,15 @@ class ReportDownloadView(APIView):
                 return Response({'status': 'Формирование отчета выполняется'}, status=status.HTTP_200_OK)
 
             elif task_status == 'SUCCESS' and report_result.status == 'completed':
-                return Response({
-                    'status': 'Формирование отчета выполнено',
-                    'file_url': request.build_absolute_uri(f'{settings.MEDIA_URL}reports/{report_result.report}')
-                }, status=status.HTTP_200_OK)
+                if report_result.send_email:
+                    return Response({
+                        'status': f'Отчет успешно отправлен на email {report_result.user.email}'
+                    }, status=status.HTTP_200_OK)
+                else:
+                    return Response({
+                        'status': 'Формирование отчета выполнено',
+                        'file_url': request.build_absolute_uri(f'{settings.MEDIA_URL}reports/{report_result.report}')
+                    }, status=status.HTTP_200_OK)
 
             elif task_status == 'FAILURE':
                 return Response({'status': 'Ошибка при формирвании отчета', 'error': task_result.error_message}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
