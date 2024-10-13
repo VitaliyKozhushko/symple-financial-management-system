@@ -26,25 +26,35 @@ def check_budget_limit(budget_id):
                     date_transaction__range=[budget.start_date, budget.end_date]
                 ).aggregate(Sum('amount'))['amount__sum'] or 0
 
-                data['actual'] = total_actual
+                data['actual'] = float(total_actual)
 
-                # Проверяем, нужно ли отправить оповещение
-                if total_actual >= 0.9 * data['forecast'] and not data['is_notified']:
-                    send_budget_notification(budget, transaction_type, category, data['forecast'], total_actual)
+                # Проверяем, нужно ли отправить оповещение для пустого бюджета
+                if data['forecast'] == 0:
+                    send_budget_notification(budget, transaction_type, category, data['forecast'], total_actual,
+                                             'zero_budget')
+
+                # Проверяем, нужно ли отправить оповещение при приближении к лимиту бюджета
+                if total_actual >= 0.9 * data['forecast'] and data['forecast'] > 0 and not data['is_notified']:
+                    send_budget_notification(budget, transaction_type, category, data['forecast'], total_actual,
+                                             'limit_budget')
                     data['is_notified'] = True
                     data['date_notified'] = timezone.now().date().isoformat()
 
     budget.save()
 
 
-def send_budget_notification(budget, transaction_type, category, forecast, actual):
+def send_budget_notification(budget, transaction_type, category, forecast, actual, type_notify: str):
     try:
+        subject_email = 'Предупреждение о бюджете' if type_notify == 'limit_budget' \
+            else 'Предупреждение о незаполненом бюджете'
+        body_email = (
+            f"Ваш лимит по категории '{category}' ({transaction_type}) "
+            f"приблизился к 90%. Прогноз: {forecast}, Фактически: {actual}."
+        ) if type_notify == 'limit_budget' \
+            else f"Необходимо установить бюджет по категории '{category}' ({transaction_type})"
         email = EmailMessage(
-            subject='Предупреждение о бюджете',
-            body=(
-                f"Ваш лимит по категории '{category}' ({transaction_type}) "
-                f"приблизился к 90%. Прогноз: {forecast}, Фактически: {actual}."
-            ),
+            subject=subject_email,
+            body=body_email,
             from_email=settings.DEFAULT_FROM_EMAIL,
             to=[budget.user.email]
         )

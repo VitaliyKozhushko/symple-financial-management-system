@@ -13,8 +13,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction as db_transaction
 from services.decorators import (add_bearer_security,
                                  swagger_auto_schema_with_types)
+from budget.models import Budget
+from budget.celery_tasks import check_budget_limit
 from .celery_tasks import generate_transaction_report
 from .models import (Transaction,
                      ReportsResult)
@@ -34,7 +37,7 @@ def validate_amount(data: dict[str, Any]) -> Decimal:
             ValidationError: если сумма не является числом или меньше либо равна нулю
         """
     try:
-        amount = Decimal(data.get('amount', '0'))
+        amount = Decimal(data.get('amount', '0')).quantize(Decimal('0.00'))
     except (ValueError, TypeError, InvalidOperation) as err:
         raise ValidationError({"amount": "Сумма транзакции должна быть числом."}) from err
 
@@ -42,6 +45,41 @@ def validate_amount(data: dict[str, Any]) -> Decimal:
         raise ValidationError({"amount": "Сумма транзакции должна быть больше нуля"})
 
     return amount
+
+
+def update_budget(user, transaction_data, operation='add'):
+    """Функция для обновления бюджета на основе транзакции."""
+    transaction_type = transaction_data['transaction_type']
+    category = transaction_data['category']
+    amount = float(Decimal(transaction_data['amount']).quantize(Decimal('0.00')))
+
+    budget = Budget.objects.filter(user=user, start_date__lte=transaction_data['date_transaction'],
+                                   end_date__gte=transaction_data['date_transaction']).first()
+
+    if not budget:
+        return
+
+    # Выбираем нужный тип бюджета
+    budget_type = budget.budget.get(transaction_type, {})
+
+    # Если категории в бюджете нет, создаем ее
+    if category not in budget_type:
+        budget_type[category] = {
+            'forecast': float(Decimal('0.00')),
+            'actual': float(Decimal('0.00')),
+            'is_notified': False,
+            'date_notified': None,
+        }
+
+    # Обновляем фактическое значение в зависимости от операции
+    if operation == 'add':
+        budget_type[category]['actual'] += amount
+    elif operation == 'subtract':
+        budget_type[category]['actual'] -= amount
+
+    budget.budget[transaction_type] = budget_type
+    budget.save()
+    check_budget_limit.delay(budget.id)
 
 
 class TransactionListCreateView(generics.ListCreateAPIView):  # type: ignore
@@ -58,7 +96,11 @@ class TransactionListCreateView(generics.ListCreateAPIView):  # type: ignore
     @add_bearer_security
     def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         validate_amount(request.data)
-        return super().post(request, *args, **kwargs)
+
+        with db_transaction.atomic():
+            response = super().post(request, *args, **kwargs)
+            update_budget(request.user, request.data, operation='add')
+        return response
 
 
 class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):  # type: ignore
@@ -76,11 +118,31 @@ class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):  # type: ign
     @add_bearer_security
     def put(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         validate_amount(request.data)
-        return super().put(request, *args, **kwargs)
+        transaction = self.get_object()
+
+        # Вычисляем разницу между новым и старым amount
+        old_amount = transaction.amount
+        new_amount = request.data['amount']
+        difference = new_amount - old_amount
+        with db_transaction.atomic():
+            response = super().put(request, *args, **kwargs)
+            if difference > 0:
+                update_budget(request.user, request.data, operation='add')
+            elif difference < 0:
+                update_budget(request.user, request.data, operation='subtract')
+
+        return response
+
 
     @add_bearer_security
     def delete(self, request: Request, *args: Any, **kwargs: Any) -> Response:
-        return super().delete(request, *args, **kwargs)
+        transaction = self.get_object()
+
+        with db_transaction.atomic():
+            response = super().delete(request, *args, **kwargs)
+            update_budget(request.user, transaction.__dict__, operation='subtract')
+
+        return response
 
 
 class GenerateReportView(APIView):  # type: ignore
