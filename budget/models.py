@@ -1,6 +1,5 @@
 from django.db import models
 from users.models import User
-from django.contrib.postgres.fields import JSONField
 from django.core.exceptions import ValidationError
 
 
@@ -8,7 +7,7 @@ class Budget(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='budgets', verbose_name='Пользователь')
     start_date = models.DateTimeField(verbose_name='Дата начала')
     end_date = models.DateTimeField(verbose_name='Дата завершения')
-    budget = JSONField(default=dict, verbose_name='Бюджет')
+    budget = models.JSONField(default=dict, verbose_name='Бюджет')
 
     class Meta:
         db_table = 'budgets'
@@ -20,8 +19,9 @@ class Budget(models.Model):
 
     def clean(self):
         """
-        Проверка дат
+        Проверка дат и структуры бюджета
         """
+        # проверка дат
         if self.end_date <= self.start_date:
             raise ValidationError({'end_date': "Дата окончания бюджета должна быть позже даты начала."})
 
@@ -29,3 +29,18 @@ class Budget(models.Model):
         if last_budget and self.start_date <= last_budget.end_date:
             raise ValidationError(
                 {'start_date': "Дата начала бюджета должна следовать за датой завершения предыдущего бюджета."})
+
+        # Проверка структуры поля budget
+        if not isinstance(self.budget, dict):
+            raise ValidationError({'budget': "Бюджет должен быть в формате JSON-объекта."})
+
+        for transaction_type in ['income', 'expense']:
+            if transaction_type in self.budget:
+                for category, data in self.budget[transaction_type].items():
+                    if 'forecast' not in data or 'actual' not in data:
+                        raise ValidationError(
+                            {'budget': f"Категория {category} должна содержать 'forecast' и 'actual'."})
+                    if not isinstance(data['forecast'], (int, float)) or not isinstance(data['actual'],
+                                                                                        (int, float)):
+                        raise ValidationError({
+                                                    'budget': f"Значения 'forecast' и 'actual' в категории {category} должны быть числовыми."})
