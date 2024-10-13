@@ -30,6 +30,11 @@ from fin_transactions.views import (TransactionListCreateView,
                                     TransactionDetailView,
                                     GenerateReportView,
                                     ReportDownloadView)
+from budget.views import (BudgetListView,
+                          BudgetDetailView,
+                          BudgetCreateView,
+                          BudgetUpdateView,
+                          BudgetDeleteView)
 
 SchemaView = get_schema_view(
     openapi.Info(
@@ -58,6 +63,11 @@ urlpatterns = [
                   path('report/', GenerateReportView.as_view(), name='generate_report'),
                   path('report/<str:task_id>/', ReportDownloadView.as_view(),
                        name='report_download'),
+                  path('budgets/', BudgetListView.as_view(), name='budget-list'),
+                  path('budgets/<int:pk>/', BudgetDetailView.as_view(), name='budget-detail'),
+                  path('budgets/create/', BudgetCreateView.as_view(), name='budget-create'),
+                  path('budgets/<int:pk>/update/', BudgetUpdateView.as_view(), name='budget-update'),
+                  path('budgets/<int:pk>/delete/', BudgetDeleteView.as_view(), name='budget-delete'),
                   path('token/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
                   path('redoc/', SchemaView.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
                   path('swagger/', SchemaView.with_ui('swagger', cache_timeout=0),

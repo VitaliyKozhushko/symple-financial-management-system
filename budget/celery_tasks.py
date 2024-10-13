@@ -26,7 +26,6 @@ def check_budget_limit(budget_id):
                     date_transaction__range=[budget.start_date, budget.end_date]
                 ).aggregate(Sum('amount'))['amount__sum'] or 0
 
-                # Обновляем фактическое значение
                 data['actual'] = total_actual
 
                 # Проверяем, нужно ли отправить оповещение
@@ -35,7 +34,6 @@ def check_budget_limit(budget_id):
                     data['is_notified'] = True
                     data['date_notified'] = timezone.now().date().isoformat()
 
-    # Сохраняем обновленный бюджет
     budget.save()
 
 
