@@ -125,7 +125,7 @@ class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):  # type: ign
 
         # Вычисляем разницу между новым и старым amount
         old_amount = transaction.amount
-        new_amount = request.data['amount']
+        new_amount = Decimal(request.data['amount'])
         difference = new_amount - old_amount
         with db_transaction.atomic():
             response = super().put(request, *args, **kwargs)
