@@ -59,7 +59,10 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):  # type: ignore
         serializer = self.get_serializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Пользователь успешно обновлен"}, status=status.HTTP_200_OK)
+            return Response({
+                "message": "Пользователь успешно обновлен",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @add_bearer_security
