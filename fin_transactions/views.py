@@ -18,6 +18,7 @@ from services.decorators import (add_bearer_security,
                                  swagger_auto_schema_with_types)
 from budget.models import Budget
 from budget.celery_tasks import check_budget_limit
+from users.models import User
 from .celery_tasks import generate_transaction_report
 from .models import (Transaction,
                      ReportsResult)
@@ -47,7 +48,9 @@ def validate_amount(data: dict[str, Any]) -> Decimal:
     return amount
 
 
-def update_budget(user, transaction_data, operation='add'):
+def update_budget(user: User, transaction_data: dict[str, Any],
+    operation: str = 'add'
+) -> None:
     """Функция для обновления бюджета на основе транзакции."""
     transaction_type = transaction_data['transaction_type']
     category = transaction_data['category']

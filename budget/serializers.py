@@ -1,3 +1,4 @@
+from typing import Any
 from rest_framework import serializers
 from .models import Budget
 
@@ -13,7 +14,7 @@ class BudgetDetailSerializer(serializers.ModelSerializer):  # type: ignore
         model = Budget
         fields = '__all__'
 
-    def validate(self, data):
+    def validate(self, data: dict[str, Any]) -> dict[str, Any]:
         """
         Проверка дат и структуры бюджета
         """
@@ -23,7 +24,7 @@ class BudgetDetailSerializer(serializers.ModelSerializer):  # type: ignore
 
         request_method = self.context['request'].method
 
-        if request_method == 'POST':
+        if request_method == 'POST' and start_date and end_date:
             # Проверка дат начала и окончания
             if end_date <= start_date:
                 raise serializers.ValidationError({'message': "Дата окончания бюджета должна быть позже даты начала."})

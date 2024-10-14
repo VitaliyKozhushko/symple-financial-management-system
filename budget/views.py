@@ -1,5 +1,6 @@
-from typing import Any
-from rest_framework import generics
+from typing import (Any,
+                    Type)
+from rest_framework import generics, serializers
 from rest_framework.request import Request
 from rest_framework.response import Response
 from django.db import transaction as db_transaction
@@ -9,10 +10,10 @@ from .serializers import (BudgetListSerializer,
                           BudgetDetailSerializer)
 
 
-class BudgetListCreateView(generics.ListCreateAPIView):
+class BudgetListCreateView(generics.ListCreateAPIView):  # type: ignore
     queryset = Budget.objects.all()
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> Type[serializers.Serializer]:
         if self.request.method == 'GET':
             return BudgetListSerializer
         return BudgetDetailSerializer
@@ -29,7 +30,7 @@ class BudgetListCreateView(generics.ListCreateAPIView):
         return response
 
 
-class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):
+class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):  # type: ignore
     queryset = Budget.objects.all()
     serializer_class = BudgetDetailSerializer
     http_method_names = ['get', 'put', 'delete']

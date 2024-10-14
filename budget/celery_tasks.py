@@ -1,4 +1,5 @@
 import logging
+from typing import Optional
 from smtplib import SMTPException
 from celery import shared_task
 from django.conf import settings
@@ -6,14 +7,16 @@ from django.core.mail import (EmailMessage,
                               BadHeaderError)
 from django.utils import timezone
 from django.db.models import Sum
+from marshmallow.fields import Decimal
+
 from fin_transactions.models import Transaction
 from .models import Budget
 
 logger = logging.getLogger(__name__)
 
 
-@shared_task
-def check_budget_limit(budget_id):
+@shared_task  # type: ignore
+def check_budget_limit(budget_id: int) -> None:
     budget = Budget.objects.get(id=budget_id)
 
     for transaction_type in ['income', 'expense']:
@@ -43,7 +46,24 @@ def check_budget_limit(budget_id):
     budget.save()
 
 
-def send_budget_notification(budget, transaction_type, category, forecast, actual, type_notify: str):
+def send_budget_notification(
+    budget: Budget,
+    transaction_type: str,
+    category: str,
+    forecast: float | int,
+    actual: float | int,
+    type_notify: Optional[str] = None
+) -> None:
+    """
+    Отправляет уведомление пользователю о подходе к лимиту бюджета либо отсутствии бюджета
+
+    :param budget: экземпляр бюджета
+    :param transaction_type: тип транзакции ('income' или 'expense')
+    :param category: категория транзакции
+    :param forecast: прогнозируемая сумма бюджета
+    :param actual: фактическая сумма транзакции
+    :param type_notify: тип уведомления ('zero_budget' или 'limit_budget')
+    """
     try:
         subject_email = 'Предупреждение о бюджете' if type_notify == 'limit_budget' \
             else 'Предупреждение о незаполненом бюджете'
