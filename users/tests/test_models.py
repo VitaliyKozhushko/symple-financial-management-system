@@ -10,7 +10,7 @@ User = get_user_model()
 @pytest.mark.django_db
 class TestUserModel:
     """
-    Класс тестирования модели User
+    Набор тестов для модели User
     """
     def test_create_user(self) -> None:
         """

@@ -75,7 +75,7 @@ class Transaction(models.Model):
         Возвращает строковое представление транзакции: тип транзакции - сумма категория.
         """
         transaction_display = self.get_transaction_type_display_custom()
-        return f"{transaction_display} - {self.amount} ({self.category})"
+        return f"{transaction_display} - {self.amount:.2f} ({self.category})"
 
 
 class ReportsResult(models.Model):
