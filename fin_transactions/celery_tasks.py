@@ -1,5 +1,5 @@
 """
-Модуль с Celery-задачами для транзакций
+Модуль Celery-задач для транзакций
 """
 import os
 import logging

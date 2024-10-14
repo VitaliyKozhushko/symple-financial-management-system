@@ -1,6 +1,10 @@
+"""
+Модуль для представлений модели Budget
+"""
 from typing import (Any,
                     Type)
-from rest_framework import generics, serializers
+from rest_framework import (generics,
+                            serializers)
 from rest_framework.request import Request
 from rest_framework.response import Response
 from django.db import transaction as db_transaction
@@ -11,6 +15,9 @@ from .serializers import (BudgetListSerializer,
 
 
 class BudgetListCreateView(generics.ListCreateAPIView):  # type: ignore
+    """
+    Получение списка бюджетов и создание бюджета
+    """
     queryset = Budget.objects.all()
 
     def get_serializer_class(self) -> Type[serializers.Serializer]:
@@ -31,6 +38,9 @@ class BudgetListCreateView(generics.ListCreateAPIView):  # type: ignore
 
 
 class BudgetDetailView(generics.RetrieveUpdateDestroyAPIView):  # type: ignore
+    """
+    Получение данных по опр. бюджету, редактирование бюджета и его удаление
+    """
     queryset = Budget.objects.all()
     serializer_class = BudgetDetailSerializer
     http_method_names = ['get', 'put', 'delete']
