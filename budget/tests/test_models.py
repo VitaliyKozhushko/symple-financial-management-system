@@ -5,6 +5,7 @@ import pytest
 from django.utils.timezone import now
 from budget.models import Budget
 from users.models import User
+from .constants import BUDGET
 
 
 @pytest.mark.django_db
@@ -30,24 +31,7 @@ class TestBudgetModel:
             'user': user,
             'start_date': now(),
             'end_date': now(),
-            'budget': {
-                "income": {
-                    "Salary": {
-                        "forecast": 1000.0,
-                        "actual": 800.0,
-                        "is_notified": False,
-                        "date_notified": None
-                    }
-                },
-                "expense": {
-                    "Food": {
-                        "forecast": 300.0,
-                        "actual": 250.0,
-                        "is_notified": False,
-                        "date_notified": None
-                    }
-                }
-            }
+            'budget': BUDGET
         }
 
     def test_budget_creation(self, valid_budget_data: dict[str, object]) -> None:
