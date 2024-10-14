@@ -47,7 +47,7 @@ class BudgetDetailSerializer(serializers.ModelSerializer):  # type: ignore
                         raise serializers.ValidationError(
                             {'budget': f"Категория {category} должна содержать 'forecast' и 'actual'."})
                     if not isinstance(category_data['forecast'], (int, float)) or not isinstance(
-                        category_data['actual'], (int, float)):
+                            category_data['actual'], (int, float)):
                         raise serializers.ValidationError({
                             'budget': f"Значения 'forecast' и 'actual' в категории {category} должны быть числовыми."
                         })

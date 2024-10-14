@@ -49,8 +49,8 @@ def validate_amount(data: dict[str, Any]) -> Decimal:
 
 
 def update_budget(user: User, transaction_data: dict[str, Any],
-    operation: str = 'add'
-) -> None:
+                  operation: str = 'add'
+                  ) -> None:
     """Функция для обновления бюджета на основе транзакции."""
     transaction_type = transaction_data['transaction_type']
     category = transaction_data['category']
@@ -135,7 +135,6 @@ class TransactionDetailView(generics.RetrieveUpdateDestroyAPIView):  # type: ign
                 update_budget(request.user, request.data, operation='subtract')
 
         return response
-
 
     @add_bearer_security
     def delete(self, request: Request, *args: Any, **kwargs: Any) -> Response:

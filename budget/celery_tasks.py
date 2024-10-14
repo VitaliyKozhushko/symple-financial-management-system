@@ -7,7 +7,6 @@ from django.core.mail import (EmailMessage,
                               BadHeaderError)
 from django.utils import timezone
 from django.db.models import Sum
-from marshmallow.fields import Decimal
 
 from fin_transactions.models import Transaction
 from .models import Budget

@@ -1,6 +1,5 @@
 from django.db import models
 from users.models import User
-from django.core.exceptions import ValidationError
 import logging
 
 logger = logging.getLogger(__name__)
