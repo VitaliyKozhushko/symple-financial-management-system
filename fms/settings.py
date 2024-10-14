@@ -146,7 +146,10 @@ DATABASES = {
         'USER': env.str('USER_DB'),
         'PASSWORD': env.str('PASSWD_DB'),
         'NAME': env.str('NAME_DB'),
-        'PORT': env.int('PORT_DB')
+        'PORT': env.int('PORT_DB'),
+        'TEST': {
+            'NAME': f'test_{env.str("NAME_DB")}',
+        },
     }
 }
 
@@ -191,7 +194,6 @@ STATIC_URL = env.str('STATIC_URL')
 MEDIA_URL = env.str('MEDIA_URL')
 
 MEDIA_ROOT = os.path.join(BASE_DIR, env.str('MEDIA_URL'))
-
 
 # Email settings
 DEFAULT_FROM_EMAIL = env.str('EMAIL_SENDER')
