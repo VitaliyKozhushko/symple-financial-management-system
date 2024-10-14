@@ -31,7 +31,7 @@ class User(AbstractUser):
         Уст. название таблицы в БД, человекочитаемое название модели
         """
         db_table = 'users'
-        verbose_name = 'ПОльзователь'
+        verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
 
     def __str__(self) -> str:

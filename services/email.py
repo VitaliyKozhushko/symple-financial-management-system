@@ -1,19 +1,40 @@
-from django.core.mail import EmailMessage
-from django.conf import settings
+"""
+Модуль для работы с email
+"""
 import logging
+from typing import Optional
+from smtplib import SMTPException
+from django.core.mail import EmailMessage
+from django.core.mail import BadHeaderError
 
 logger = logging.getLogger(__name__)
 
-def send_report_via_email(report_content, email_to):
+
+def send_email(subject: str, body: str, from_email: str, recipient_list: list[str],
+               file_content: Optional[list[list[str]]] = None) -> None:
+    """
+    Функция для отправки email
+
+    :param subject: Тема email
+    :param body: содержмое email
+    :param from_email: email отправителя
+    :param recipient_list: список email получателей
+    :param file_content: содержимое файла для отправки в виде списка
+    """
+    email = EmailMessage(subject, body, from_email, recipient_list)
+    if file_content:
+        email.attach('transaction_report.csv', add_file(file_content), 'text/csv, charset=utf-8')
     try:
-        email = EmailMessage(
-            subject='Ваш отчет по транзакциям',
-            body='Отчет по вашим транзакциям прикреплен к этому письму.',
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[email_to]
-        )
-        csv_content = "\n".join([",".join(map(str, row)) for row in report_content]).encode('utf-8')
-        email.attach('transaction_report.csv', csv_content, 'text/csv, charset=utf-8')
         email.send()
-    except Exception as e:
-        logger.error(f'Ошибка отправки email: {e}', exc_info=True)
+    except BadHeaderError as e:
+        logger.error('Ошибка: Некорректный заголовок email: %s', e, exc_info=True)
+    except SMTPException as e:
+        logger.error('Ошибка отправки email: %s', e, exc_info=True)
+
+
+def add_file(file_content: list[list[str]]) -> bytes:
+    """
+    Функция для преобразования данных в строку из списка для добавления в CSV
+    :param file_content: содержимое файла для отправки
+    """
+    return "\n".join([",".join(map(str, row)) for row in file_content]).encode('utf-8')
