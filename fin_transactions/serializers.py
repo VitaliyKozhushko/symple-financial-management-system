@@ -34,7 +34,6 @@ class TransactionsSerializer(serializers.ModelSerializer):  # type: ignore
         3. Если поле не передано, это обрабатывается в методах create/update.
         """
         if value is None or value == "":
-            # Если значение None или пустая строка, возвращаем текущую дату
             return django_timezone.now()
 
         try:

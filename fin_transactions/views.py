@@ -14,6 +14,7 @@ from rest_framework.views import APIView
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db import transaction as db_transaction
+from django.utils import timezone as django_timezone
 from services.decorators import (add_bearer_security,
                                  swagger_auto_schema_with_types)
 from budget.models import Budget
@@ -55,7 +56,7 @@ def update_budget(user: User, transaction_data: dict[str, Any],
     transaction_type = transaction_data['transaction_type']
     category = transaction_data['category']
     amount = float(Decimal(transaction_data['amount']).quantize(Decimal('0.00')))
-
+    print('transaction_data:', transaction_data)
     budget = Budget.objects.filter(user=user, start_date__lte=transaction_data['date_transaction'],
                                    end_date__gte=transaction_data['date_transaction']).first()
 
@@ -99,6 +100,11 @@ class TransactionListCreateView(generics.ListCreateAPIView):  # type: ignore
     @add_bearer_security
     def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         validate_amount(request.data)
+
+        date_transaction = request.data.get('date_transaction')
+        if date_transaction is None or date_transaction.strip() == "":
+            request.data['date_transaction'] = (django_timezone.now()
+                                                .strftime('%Y-%m-%dT%H:%M') + 'Z')
 
         with db_transaction.atomic():
             response = super().post(request, *args, **kwargs)

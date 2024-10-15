@@ -23,7 +23,7 @@ def send_email(subject: str, body: str, from_email: str, recipient_list: list[st
     """
     email = EmailMessage(subject, body, from_email, recipient_list)
     if file_content:
-        email.attach('transaction_report.csv', add_file(file_content), 'text/csv, charset=utf-8')
+        email.attach('transactions_report.csv', add_file(file_content), 'text/csv, charset=utf-8')
     try:
         email.send()
     except BadHeaderError as e:

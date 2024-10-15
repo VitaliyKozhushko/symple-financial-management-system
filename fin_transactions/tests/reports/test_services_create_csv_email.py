@@ -69,7 +69,7 @@ class TestGenerateTransactionReport:
         assert len(email.attachments) == 1
         attachment = email.attachments[0]
 
-        assert attachment[0] == 'transaction_report.csv'
+        assert attachment[0] == 'transactions_report.csv'
         assert attachment[2] == 'text/csv, charset=utf-8'
 
         csv_content = attachment[1]
