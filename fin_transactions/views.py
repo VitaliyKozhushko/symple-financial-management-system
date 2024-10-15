@@ -170,7 +170,7 @@ class GenerateReportView(APIView):  # type: ignore
 
         if not transactions_exists:
             return Response(
-                {"message": "В БД нет записей для выбранного пользователя за указанный период."},
+                {"detail": "В БД нет записей для выбранного пользователя за указанный период."},
                 status=status.HTTP_404_NOT_FOUND
             )
 

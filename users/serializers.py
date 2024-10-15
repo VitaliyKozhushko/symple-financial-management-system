@@ -34,12 +34,12 @@ class UserSerializer(serializers.ModelSerializer):  # type: ignore
 
 class UserDetailSerializer(serializers.ModelSerializer):  # type: ignore
     """
-    Класс сериализатора для списка пользователей и данных по опр. пользователю
+    Cериализатор для списка пользователей и данных по опр. пользователю
     """
 
     class Meta:  # pylint: disable=too-few-public-methods
         """
-        Класс настройки сериализатора регистрации пользователя
+        Настройка сериализатора регистрации пользователя
         """
         model = User
         fields = ['id', 'first_name', 'last_name', 'email', 'date_joined']
