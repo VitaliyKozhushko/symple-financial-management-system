@@ -169,10 +169,13 @@ class GenerateReportView(APIView):  # type: ignore
         end_date = request.data.get('end_date')
         send_email = bool(request.data.get('send_email', False))
 
-        transactions_exists = Transaction.objects.filter(
-            user_id=user_id,
-            date_transaction__range=[start_date, end_date]
-        ).exists()
+        transactions_query = Transaction.objects.filter(user_id=user_id)
+
+        if start_date and end_date:
+            transactions_query = transactions_query.filter(
+                date_transaction__range=[start_date, end_date])
+
+        transactions_exists = transactions_query.exists()
 
         if not transactions_exists:
             return Response(
