@@ -16,6 +16,20 @@ class TestReportAPI:
     """
     Набор интеграционных тестов для API генерации отчета
     """
+    @staticmethod
+    def generate_report(api_client: APIClient, user: User, start_date: str, end_date: str, send_email: bool):
+        """
+        Вспомогательная функция для генерации отчета
+        """
+        api_client.force_authenticate(user=user)
+        url = reverse('generate_report')
+        data = {
+            'user_id': user.id,
+            'start_date': start_date,
+            'end_date': end_date,
+            'send_email': send_email
+        }
+        return api_client.post(url, data, format='json')
 
     @pytest.fixture
     def api_client(self) -> APIClient:
@@ -56,15 +70,9 @@ class TestReportAPI:
 
         mock_generate_transaction_report_delay.return_value = Mock(id='test-task-id')
 
-        api_client.force_authenticate(user=user)
-        url = reverse('generate_report')
-        data = {
-            'user_id': user.id,
-            'start_date': '2024-01-01T01:01Z',
-            'end_date': '2024-12-31T01:01Z',
-            'send_email': True
-        }
-        response = api_client.post(url, data, format='json')
+        response = self.generate_report(api_client, user,
+                                        '2024-01-01T01:01Z',
+                                        '2024-12-31T01:01Z', True)
 
         assert response.status_code == status.HTTP_202_ACCEPTED
         assert 'task_id' in response.data
@@ -82,16 +90,9 @@ class TestReportAPI:
         """
         Проверка случая, когда нет транзакций за указанный период
         """
-        api_client.force_authenticate(user=user)
-        url = reverse('generate_report')
-        data = {
-            'user_id': user.id,
-            'start_date': '2024-01-01T01:01Z',
-            'end_date': '2024-12-31T01:01Z',
-            'send_email': True
-        }
-
-        response = api_client.post(url, data, format='json')
+        response = self.generate_report(api_client, user,
+                                        '2024-01-01T01:01Z',
+                                        '2024-12-31T01:01Z', True)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert response.data['message'] == ("В БД нет записей для выбранного "
