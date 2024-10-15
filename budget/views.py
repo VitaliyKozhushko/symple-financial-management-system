@@ -33,7 +33,6 @@ class BudgetListCreateView(generics.ListCreateAPIView):  # type: ignore
     def post(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         with db_transaction.atomic():
             response = super().post(request, *args, **kwargs)
-            # Логика обновления бюджета тут не нужна
         return response
 
 

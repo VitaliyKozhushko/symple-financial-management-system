@@ -12,6 +12,8 @@ from rest_framework.permissions import (AllowAny,
                                         BasePermission,
                                         IsAuthenticated)
 from rest_framework.serializers import Serializer
+from rest_framework.exceptions import ValidationError
+from django.db.models import QuerySet
 from services.decorators import add_bearer_security
 from .serializers import (UserSerializer,
                           UserDetailSerializer)
@@ -34,6 +36,12 @@ class UserListView(generics.ListCreateAPIView):  # type: ignore
         if self.request.method == 'POST':
             return UserSerializer
         return UserDetailSerializer
+
+    def get_queryset(self) -> QuerySet[User, User]:
+        """
+        Исключение суперпользователя из списка пользователей
+        """
+        return User.objects.filter(is_superuser=False)
 
     @add_bearer_security
     def get(self, request: Request, *args: Any, **kwargs: Any) -> Response:
@@ -59,11 +67,20 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):  # type: ignore
         serializer = self.get_serializer(user, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "Пользователь успешно обновлен"}, status=status.HTTP_200_OK)
+            return Response({
+                "detail": "Пользователь успешно обновлен",
+                "data": serializer.data
+            }, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @add_bearer_security
     def destroy(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         user = self.get_object()
+        current_user = request.user
+
+        # Запрещаем удалять пользователю самого себя
+        if user == current_user:
+            raise ValidationError({"detail": "Вы не можете удалить самого себя"})
+
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)

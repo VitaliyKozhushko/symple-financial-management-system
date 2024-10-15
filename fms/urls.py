@@ -21,17 +21,10 @@ from rest_framework_simplejwt.views import (TokenObtainPairView,
                                             TokenRefreshView)
 from django.contrib import admin
 from django.urls import (path,
-                         re_path)
+                         re_path,
+                         include)
 from django.conf import settings
 from django.conf.urls.static import static
-from users.views import (UserListView,
-                         UserDetailView)
-from fin_transactions.views import (TransactionListCreateView,
-                                    TransactionDetailView,
-                                    GenerateReportView,
-                                    ReportDownloadView)
-from budget.views import (BudgetListCreateView,
-                          BudgetDetailView)
 
 SchemaView = get_schema_view(
     openapi.Info(
@@ -50,18 +43,10 @@ SchemaView = get_schema_view(
 urlpatterns = [
                   path('admin/', admin.site.urls),
                   path('login/', TokenObtainPairView.as_view(), name='get_token'),
-                  path('users/', UserListView.as_view(), name='user-list-create'),
-                  path('users/<int:pk>/', UserDetailView.as_view(),
-                       name='user-detail-update-delete'),
-                  path('transactions/', TransactionListCreateView.as_view(),
-                       name='transaction-list-create'),
-                  path('transactions/<int:pk>/', TransactionDetailView.as_view(),
-                       name='transaction-detail-update-delete'),
-                  path('report/', GenerateReportView.as_view(), name='generate_report'),
-                  path('report/<str:task_id>/', ReportDownloadView.as_view(),
-                       name='report_download'),
-                  path('budgets/', BudgetListCreateView.as_view(), name='budget-list-create'),
-                  path('budgets/<int:pk>/', BudgetDetailView.as_view(), name='budget-detail'),
+                  path('users/', include('users.urls')),
+                  path('transactions/', include('fin_transactions.urls_transactions')),
+                  path('report/', include('fin_transactions.urls_reports')),
+                  path('budgets/', include('budget.urls')),
                   path('token/refresh/', TokenRefreshView.as_view(), name='refresh_token'),
                   path('redoc/', SchemaView.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
                   path('swagger/', SchemaView.with_ui('swagger', cache_timeout=0),
