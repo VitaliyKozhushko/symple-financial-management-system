@@ -17,6 +17,7 @@ class TestReportAPI:
     """
     Набор интеграционных тестов для API генерации отчета
     """
+
     @staticmethod
     def generate_report(api_client: APIClient, user: User, start_date: str,
                         end_date: str, send_email: bool) -> Response:
@@ -97,8 +98,8 @@ class TestReportAPI:
                                         '2024-12-31T01:01Z', True)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
-        assert response.data['message'] == ("В БД нет записей для выбранного "
-                                            "пользователя за указанный период.")
+        assert response.data['detail'] == ("В БД нет записей для выбранного "
+                                           "пользователя за указанный период.")
 
     @pytest.fixture
     def create_report(self, user: User) -> ReportsResult:
