@@ -37,4 +37,4 @@ def add_file(file_content: list[list[str]]) -> bytes:
     Функция для преобразования данных в строку из списка для добавления в CSV
     :param file_content: содержимое файла для отправки
     """
-    return "\n".join([",".join(map(str, row)) for row in file_content]).encode('utf-8')
+    return ('\n'.join([','.join(map(str, row)) for row in file_content]) + '\n').encode('utf-8')
