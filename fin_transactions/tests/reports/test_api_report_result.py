@@ -5,6 +5,7 @@ from unittest.mock import patch, Mock, MagicMock
 import pytest
 from rest_framework import status
 from rest_framework.test import APIClient
+from rest_framework.response import Response
 from django.urls import reverse
 from fin_transactions.models import (Transaction,
                                      ReportsResult)
@@ -17,7 +18,8 @@ class TestReportAPI:
     Набор интеграционных тестов для API генерации отчета
     """
     @staticmethod
-    def generate_report(api_client: APIClient, user: User, start_date: str, end_date: str, send_email: bool):
+    def generate_report(api_client: APIClient, user: User, start_date: str,
+                        end_date: str, send_email: bool) -> Response:
         """
         Вспомогательная функция для генерации отчета
         """

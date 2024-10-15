@@ -24,17 +24,6 @@ class TestBudgetAPI:
         return APIClient()
 
     @pytest.fixture
-    def user(self) -> User:
-        """
-        Фикстура для создания пользователя
-        """
-        return User.objects.create(
-            first_name="John",
-            last_name="Doe",
-            email="john.doe@example.com"
-        )
-
-    @pytest.fixture
     def transaction(self, user: User) -> Transaction:
         """
         Фикстура для создания транзакции
